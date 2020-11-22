@@ -6,7 +6,8 @@ import Gauge
 
 let gaugeView = GaugeView(frame: CGRect(x: 0, y: 0, width: 300, height: 300))
 
-gaugeView.numberOfParts = 60
+gaugeView.partsCount = 40
+gaugeView.angleRange = (CGFloat.pi * 5 / 6)...(CGFloat.pi * 13 / 6)
 gaugeView.dialSize = CGSize(width: 15, height: 4)
 gaugeView.limitDialSize = CGSize(width: 20, height: 4)
 
@@ -19,5 +20,9 @@ gaugeView.progress = 0.4
 PlaygroundPage.current.liveView = gaugeView
 
 DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-    gaugeView.setProgressAnimated(0.7, duration: 10)
+    gaugeView.passedDialColor = .blue
+}
+
+DispatchQueue.main.asyncAfter(deadline: .now() + 4) {
+    gaugeView.setProgressAnimated(0.7, duration: 1)
 }

@@ -9,7 +9,7 @@ public class GaugeView: UIView {
     /// Size of normal dials.
     public var dialSize = CGSize(width: 14, height: 3) { didSet { setupLayers() } }
 
-    /// Size of the dial that shows the limit
+    /// Size of the dial that shows the limit.
     public var limitDialSize = CGSize(width: 14, height: 3) { didSet { setupLayers() } }
 
     /// Color of normal dial.
@@ -17,6 +17,9 @@ public class GaugeView: UIView {
 
     /// Color of dials that are below the progress value.
     public var passedDialColor: UIColor = .green { didSet { recolorDials() } }
+
+    /// Color of dials that are below the progress value but greater than the limit.
+    public var passedLimitDialColor: UIColor = .orange { didSet { recolorDials() } }
 
     /// Color of dial which shows the limit.
     public var limitDialColor: UIColor = .red { didSet { recolorDials() } }
@@ -43,10 +46,15 @@ public class GaugeView: UIView {
 
     private var _progress: Double = 0.5
 
-    // MARK: Layers
+    // MARK: Views & Layers
 
-    private var gaugeLayer: CALayer = CALayer()
-    private var dialsLayers: [CAShapeLayer] = []
+    private var dialsView: UIView = {
+        let view = UIView()
+        view.backgroundColor = .clear
+        return view
+    }()
+
+    private var dialLayers: [CAShapeLayer] = []
 
     // MARK: Public functions
 
@@ -66,6 +74,7 @@ public class GaugeView: UIView {
 
     public override func layoutSubviews() {
         super.layoutSubviews()
+        reframeDials()
     }
 
     /// Updates the progress of the `GaugeView` with an animation.
@@ -83,7 +92,7 @@ public class GaugeView: UIView {
         let changedCount = activeDialsCount - currentActiveDialsCount
         if changedCount >= 0 {
             for offset in (currentActiveDialsCount..<activeDialsCount) {
-                let dialLayer = dialsLayers[offset]
+                let dialLayer = dialLayers[offset]
                 let animation = CABasicAnimation(keyPath: "fillColor")
                 let duration = duration / Double(changedCount)
                 animation.toValue = fillColorFor(dialAt: offset).cgColor
@@ -96,7 +105,7 @@ public class GaugeView: UIView {
             }
         } else {
             for offset in (activeDialsCount..<currentActiveDialsCount).reversed() {
-                let dialLayer = dialsLayers[offset]
+                let dialLayer = dialLayers[offset]
                 let animation = CABasicAnimation(keyPath: "fillColor")
                 let duration = duration / Double(changedCount)
                 animation.toValue = fillColorFor(dialAt: offset).cgColor
@@ -112,26 +121,34 @@ public class GaugeView: UIView {
     // MARK: Design functions
 
     private func setupLayers() {
-        gaugeLayer.removeFromSuperlayer()
-        gaugeLayer.sublayers?.forEach { $0.removeFromSuperlayer() }
+        dialsView.removeFromSuperview()
+        dialsView.layer.sublayers?.forEach { $0.removeFromSuperlayer() }
         let frame = bounds.inclosingRect()
-        gaugeLayer.frame = frame
-        layer.addSublayer(gaugeLayer)
+        dialsView.frame = frame
+        addSubview(dialsView)
 
-        dialsLayers = []
+        dialLayers = []
 
         for offset in 0...partsCount {
             let dialLayer = makeDialLayer(offset: offset)
-            dialsLayers.append(dialLayer)
-            gaugeLayer.addSublayer(dialLayer)
+            dialLayers.append(dialLayer)
+            dialsView.layer.addSublayer(dialLayer)
             dialLayer.position = positionFor(dialAt: offset)
         }
     }
 
     private func recolorDials() {
-        dialsLayers
+        dialLayers
             .enumerated()
             .forEach { $0.element.fillColor = self.fillColorFor(dialAt: $0.offset).cgColor }
+    }
+
+    private func reframeDials() {
+        let frame = bounds.inclosingRect()
+        dialsView.frame = frame
+        dialLayers
+            .enumerated()
+            .forEach { $0.element.position = self.positionFor(dialAt: $0.offset) }
     }
 
     private func makeDialLayer(offset: Int) -> CAShapeLayer {
@@ -154,7 +171,7 @@ public class GaugeView: UIView {
     private func positionFor(dialAt offset: Int) -> CGPoint {
         let angle: CGFloat = angleFor(dialAt: offset)
         let radius: CGFloat = radiusFor(dialAt: offset)
-        let center: CGPoint = gaugeLayer.frame.center
+        let center: CGPoint = dialsView.frame.center
         return CGPoint(x: center.x + radius * cos(angle), y: center.y + radius * sin(angle))
     }
 
@@ -174,8 +191,10 @@ public class GaugeView: UIView {
         switch offset {
         case limitDialOffset:
             return limitDialColor
-        case 0..<activeDialsCount:
+        case 0..<activeDialsCount where offset < limitDialOffset:
             return passedDialColor
+        case 0..<activeDialsCount where offset > limitDialOffset:
+            return passedLimitDialColor
         default:
             return dialColor
         }
@@ -183,6 +202,6 @@ public class GaugeView: UIView {
 
     private func radiusFor(dialAt offset: Int) -> CGFloat {
         let dialWidth = max(dialSize.width, limitDialSize.width)
-        return gaugeLayer.frame.height / 2 - dialWidth / 2
+        return dialsView.frame.height / 2 - dialWidth / 2
     }
 }
