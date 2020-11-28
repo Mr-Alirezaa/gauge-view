@@ -7,10 +7,10 @@ import UIKit
 public class GaugeView: UIView {
 
     /// Size of normal dials.
-    public var dialSize = CGSize(width: 14, height: 3) { didSet { setupLayers() } }
+    public var dialSize: CGSize = CGSize(width: 14, height: 3) { didSet { setupLayers() } }
 
     /// Size of the dial that shows the limit.
-    public var limitDialSize = CGSize(width: 14, height: 3) { didSet { setupLayers() } }
+    public var limitDialSize: CGSize = CGSize(width: 14, height: 3) { didSet { setupLayers() } }
 
     /// Color of normal dial.
     public var dialColor: UIColor = .gray { didSet { recolorDials() } }
@@ -25,10 +25,10 @@ public class GaugeView: UIView {
     public var limitDialColor: UIColor = .red { didSet { recolorDials() } }
 
     /// Number of parts that the desired angle is divided to.
-    public var partsCount = 60 { didSet { setupLayers() } }
+    public var partsCount: Int = 60 { didSet { setupLayers() } }
 
     /// The range of angles that gauge uses.
-    public var angleRange: ClosedRange<CGFloat> = (CGFloat.pi * 5 / 6)...CGFloat.pi * 13 / 6 { didSet { setupLayers() } }
+    public var angleRange: ClosedRange<CGFloat> = 0...CGFloat.pi { didSet { setupLayers() } }
 
     /// Progress of the gauge. Dials below the progress have different appearance.
     public var progress: Double {
@@ -82,7 +82,7 @@ public class GaugeView: UIView {
     /// - Parameters:
     ///   - progress: The new progress value.
     ///   - duration: Duration of the animation.
-    public func setProgressAnimated(_ progress: Double, duration: TimeInterval) {
+    internal func setProgressAnimated(_ progress: Double, duration: TimeInterval) {
         let currentActiveDialsCount = activeDialsCount
 
         let activeDialsCount = Int((progress * Double(partsCount + 1)).rounded(.down))

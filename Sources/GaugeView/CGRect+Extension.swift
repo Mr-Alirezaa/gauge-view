@@ -1,9 +1,3 @@
-//
-//  File.swift
-//  
-//
-//  Created by Alireza Asadi on 30/8/1399 AP.
-//
 
 import UIKit
 

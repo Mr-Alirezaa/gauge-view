@@ -2,7 +2,9 @@
   
 import UIKit
 import PlaygroundSupport
-import Gauge
+import GaugeView
+
+//: This is a really small sample to show how GaugeView is setup and used.
 
 let gaugeView = GaugeView(frame: CGRect(x: 0, y: 0, width: 300, height: 300))
 
